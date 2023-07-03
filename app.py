@@ -44,8 +44,7 @@ def recommend(typee):
         recommended_partner_names.append(partners.iloc[i[0]]['name'])
 
     data = {
-        # "partners" :partners.to_dict(orient='records'),
-        # "index" :partners[partners['name'] == "PIZZA & GO"].to_dict(orient='records'),
+      
         "recommended_partner_names" :recommended_partner_names
     }
     return jsonify(data)
@@ -53,21 +52,11 @@ def recommend(typee):
 
 @app.route("/api/GrapData/<typee>")    
 def recommendFromGraph(typee):
-    # with driver.session() as session:
-    # with get_neo4j_driver().session() as session:
-        # result = session.run("MATCH (u:User) RETURN u.name AS name")
-  
-        # result = session.run('MATCH (u:User{sexe:"female"})-[r]->(c:Order)<-[d *1]-(b:Box) RETURN b')
-        # # users = [record["b"] for record in result]
-        # nodes = [record['b'] for record in result]
-        # return jsonify(nodes)
+
     with get_neo4j_driver().session() as session:
-        result = session.run("MATCH (n) RETURN n LIMIT 10")
-        # nodes = [record['n'] for record in result]
-        # data = {
-        # "boxs" :nodes
-        # }
-        nodes = [serialize_node(record['n']) for record in result]
+        result = session.run("MATCH (u:User{sexe: $typee})-[r]->(c:Order)<-[d *1]-(b:Box) RETURN b", typee=typee)
+       
+        nodes = [serialize_node(record['b']) for record in result]
     return jsonify(nodes)
 
 if (__name__ == "__main__"):
