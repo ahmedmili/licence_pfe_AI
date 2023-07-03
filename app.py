@@ -3,9 +3,31 @@ from flask import Flask ,request, jsonify
 import pickle
 import pandas as pd
 
+from neo4j import GraphDatabase
 import json
 
 app=Flask(__name__)
+
+# neo4j_uri = "bolt://localhost:7687"  # Replace with your Neo4j URI
+# neo4j_username = "neo4j"  # Replace with your Neo4j username
+# neo4j_password = "123456789"  # Replace with your Neo4j password
+
+# driver = GraphDatabase.driver(neo4j_uri, auth=(neo4j_username, neo4j_password))
+
+def get_neo4j_driver():
+    uri = "bolt://localhost:7687"  # Update with your Neo4j URI
+    username = "neo4j"  # Update with your Neo4j username
+    password = "123456789"  # Update with your Neo4j password
+
+    return GraphDatabase.driver(uri, auth=(username, password))
+
+def serialize_node(node):
+    serialized = {
+        'id': node.id,
+        # 'labels': list(node.labels),
+        'properties': dict(node)
+    }
+    return serialized
 
 @app.route("/api/data/<typee>")    
 def recommend(typee):
@@ -28,6 +50,25 @@ def recommend(typee):
     }
     return jsonify(data)
 
+
+@app.route("/api/GrapData/<typee>")    
+def recommendFromGraph(typee):
+    # with driver.session() as session:
+    # with get_neo4j_driver().session() as session:
+        # result = session.run("MATCH (u:User) RETURN u.name AS name")
+  
+        # result = session.run('MATCH (u:User{sexe:"female"})-[r]->(c:Order)<-[d *1]-(b:Box) RETURN b')
+        # # users = [record["b"] for record in result]
+        # nodes = [record['b'] for record in result]
+        # return jsonify(nodes)
+    with get_neo4j_driver().session() as session:
+        result = session.run("MATCH (n) RETURN n LIMIT 10")
+        # nodes = [record['n'] for record in result]
+        # data = {
+        # "boxs" :nodes
+        # }
+        nodes = [serialize_node(record['n']) for record in result]
+    return jsonify(nodes)
 
 if (__name__ == "__main__"):
     app.run(debug=True)
