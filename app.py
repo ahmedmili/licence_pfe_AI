@@ -23,9 +23,10 @@ def get_neo4j_driver():
 
 def serialize_node(node):
     serialized = {
-        'id': node.id,
+        'id': node["id"],
+        # 'id': node.id,
         # 'labels': list(node.labels),
-        'properties': dict(node)
+        # 'properties': dict(node)
     }
     return serialized
 
@@ -54,9 +55,10 @@ def recommend(typee):
 def recommendFromGraph(typee):
 
     with get_neo4j_driver().session() as session:
-        result = session.run("MATCH (u:User{sexe: $typee})-[r]->(c:Order)<-[d *1]-(b:Box) RETURN b", typee=typee)
+        result = session.run("MATCH (u:User{sexe: $typee})-[r]->(c:Order)<-[d *1]-(b:Box) RETURN b.id as id", typee=typee)
        
-        nodes = [serialize_node(record['b']) for record in result]
+        nodes = [serialize_node(record) for record in result]
+    # return jsonify(nodes)
     return jsonify(nodes)
 
 if (__name__ == "__main__"):
